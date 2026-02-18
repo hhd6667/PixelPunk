@@ -20,12 +20,18 @@ import (
 
 func validateUploadInput(ctx *UploadContext) error {
 	settingsMap, err := setting.GetSettingsByGroupAsMap("upload")
-	maxFileSize := int64(20 * 1024 * 1024) // 默认20MB
+	maxFileSize := int64(100 * 1024 * 1024) // 默认100MB
 
 	if err == nil {
 		if maxSizeVal, ok := settingsMap.Settings["max_file_size"]; ok {
-			if maxSizeMB, ok := maxSizeVal.(float64); ok {
-				maxFileSize = int64(maxSizeMB * 1024 * 1024) // 转换MB为字节
+			switch v := maxSizeVal.(type) {
+			case float64:
+				maxFileSize = int64(v * 1024 * 1024)
+			case int:
+				maxFileSize = int64(v) * 1024 * 1024
+			case int64:
+				maxFileSize = v * 1024 * 1024
+			}
 			}
 		}
 	}
@@ -108,12 +114,16 @@ func validateFolder(ctx *UploadContext) error {
 
 func validateBatchUploadFiles(files []*multipart.FileHeader) error {
 	settingsMap, err := setting.GetSettingsByGroupAsMap("upload")
-	maxFileSize := int64(20 * 1024 * 1024)   // 默认20MB单文件限制
+	maxFileSize := int64(100 * 1024 * 1024)   // 默认20MB单文件限制
 	maxBatchSize := int64(100 * 1024 * 1024) // 默认100MB批量限制
 	if err == nil {
 		if maxSizeVal, ok := settingsMap.Settings["max_file_size"]; ok {
-			if maxSizeMB, ok := maxSizeVal.(float64); ok {
-				maxFileSize = int64(maxSizeMB * 1024 * 1024)
+			switch v := maxSizeVal.(type) {
+			case float64:
+				maxFileSize = int64(v * 1024 * 1024)
+			case int:
+				maxFileSize = int64(v) * 1024 * 1024
+			}
 			}
 		}
 		if maxBatchSizeVal, ok := settingsMap.Settings["max_batch_size"]; ok {
